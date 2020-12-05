@@ -15,7 +15,7 @@ public class Weather {
         Job job = new Job();
         job.setNumReduceTasks(1);
         job.setJarByClass(Weather.class);
-        job.setJobName("Weather-March");
+        job.setJobName("Weather-2019");
 
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));

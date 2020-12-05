@@ -13,7 +13,7 @@ public class WeatherMapper extends Mapper<LongWritable, Text, Text, Text> {
             return;
         }
         String line = value.toString().replace("\"", "");
-        String[] inputArray = line.split(",");
+        String[] inputArray = line.split(",", -1);
         // "72505394728","2020-03-01T00:51:00","FM-15","7",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"30.10","8","25","0.00",,"-0.04","3","48","30.07","CLR:00","29.93","10.00","20","VRB","20","11",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"MET12403/01/20
         // 00:51:02 METAR KNYC 010551Z 30010G17KT 10SM CLR M04/M13 A3010 RMK AO2 SLP184
         // T10391133 11017 21039 53014 $ RTX
@@ -29,21 +29,15 @@ public class WeatherMapper extends Mapper<LongWritable, Text, Text, Text> {
         // 'HourlyWindSpeed': 56,
         // 'REM': 93
         String date = inputArray[1];
+        String REPORT_TYPE = inputArray[2];
 
-        if (!date.startsWith("2020-03-")) {
+        // SOD = summary of day, SOM = summary of month
+        if (!date.startsWith("2019") | (REPORT_TYPE.startsWith("SO"))) {
             return;
         }
 
-        String[] dates = date.split("T");
-        String time = dates[1];
-        String day = dates[0].split("-")[2];
-        String hours[] = time.split(":");
-
-        String hour = hours[0];
-
-        if (hours[1].equals("59")) {
-            hour = "24";
-        }
+        // time series format: 2020-01-01 00:00:00
+        String timeSeries = date.substring(0, 14).replace("T", " ") + "00:00";
 
         String HourlyDryBulbTemperature = inputArray[43];
         String HourlyPrecipitation = inputArray[44];
@@ -63,7 +57,6 @@ public class WeatherMapper extends Mapper<LongWritable, Text, Text, Text> {
         data.add(HourlyWindGustSpeed);
         data.add(HourlyWindSpeed);
 
-        String intermediate_key = day + "," + hour;
-        context.write(new Text(intermediate_key), new Text(data.toString()));
+        context.write(new Text(timeSeries), new Text(data.toString()));
     }
 }
